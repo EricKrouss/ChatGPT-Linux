@@ -1,6 +1,6 @@
 {
   "name": "@eric/chatgpt-electron",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Minimal Electron wrapper for ChatGPT on Bazzite Linux",
   "private": true,
   "type": "module",
@@ -8,7 +8,10 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "build": "echo \"No packager configured. Use electron-builder if needed.\""
+    "build": "electron-builder -l AppImage deb rpm",
+    "build:linux": "electron-builder -l AppImage deb rpm",
+    "build:appimage": "electron-builder -l AppImage",
+    "release": "electron-builder -p always"
   },
   "author": "Eric",
   "license": "MIT",
@@ -18,14 +21,50 @@
     "url": "git+https://github.com/erickrouss/chatgpt-linux.git"
   },
   "bugs": {
-    "url": "https://example.com/erickrouss/chatgpt-linux/issues"
+    "url": "https://github.com/erickrouss/chatgpt-linux/issues"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "adm-zip": "^0.5.12",
     "semver": "^7.6.3"
+  },
+  "build": {
+    "appId": "com.eric.chatgptelectron",
+    "productName": "ChatGPT",
+    "files": [
+      "src/**",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Network",
+      "maintainer": "Eric",
+      "executableName": "chatgpt-electron",
+      "artifactName": "chatgpt-${version}-${arch}.${ext}",
+      "desktop": {
+        "entry": {
+          "Name": "ChatGPT",
+          "Comment": "ChatGPT desktop client",
+          "StartupWMClass": "ChatGPT"
+        }
+      }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "erickrouss",
+        "repo": "chatgpt-linux"
+      }
+    ]
   }
 }
-
