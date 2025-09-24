@@ -15,10 +15,10 @@
   "homepage": "https://chat.openai.com",
   "repository": {
     "type": "git",
-    "url": "git+https://example.com/eric/chatgpt-electron.git"
+    "url": "git+https://github.com/erickrouss/chatgpt-linux.git"
   },
   "bugs": {
-    "url": "https://example.com/eric/chatgpt-electron/issues"
+    "url": "https://example.com/erickrouss/chatgpt-linux/issues"
   },
   "devDependencies": {
     "electron": "^31.0.0"
