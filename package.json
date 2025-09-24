@@ -6,12 +6,14 @@
   "type": "module",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "electron .",
-    "build": "electron-builder -l AppImage deb rpm",
-    "build:linux": "electron-builder -l AppImage deb rpm",
-    "build:appimage": "electron-builder -l AppImage",
-    "release": "electron-builder -p always"
+		"start": "electron .",
+		"dev": "electron .",
+		"build": "electron-builder -l AppImage deb rpm",
+		"build:linux": "electron-builder -l AppImage deb rpm",
+		"build:appimage": "electron-builder -l AppImage",
+		"release": "electron-builder -p always",
+    "build:prep": "npm install",
+    "build:auto": "distrobox-enter chatgpt-build -- /bin/bash -lc 'cd \"/home/eric/Developer/ChatGPT Electron\" && npm run build:prep && npm run build'"
   },
   "author": "Eric",
   "license": "MIT",

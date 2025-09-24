@@ -31,14 +31,77 @@ function getRepoFromEnv() {
 	return envRepo.trim(); // "owner/name"
 }
 
+function parseGithubRepoString(value) {
+	if (typeof value !== 'string') return null;
+	const trimmed = value.trim();
+	if (!trimmed) return null;
+	const simpleMatch = trimmed.match(/^[^/]+\/[^/]+$/);
+	if (simpleMatch) {
+		return trimmed.replace(/\.git$/, '');
+	}
+	const urlMatch = trimmed.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/#]+?)(?:\.git)?(?:#.*)?$/i);
+	if (urlMatch?.groups) {
+		const { owner, repo } = urlMatch.groups;
+		return `${owner}/${repo.replace(/\.git$/, '')}`;
+	}
+	const sshMatch = trimmed.match(/^git@github\.com:(?<owner>[^/]+)\/(?<repo>[^/#]+?)(?:\.git)?$/i);
+	if (sshMatch?.groups) {
+		const { owner, repo } = sshMatch.groups;
+		return `${owner}/${repo.replace(/\.git$/, '')}`;
+	}
+	return null;
+}
+
+function repoFromPackage(pkg) {
+	if (!pkg || typeof pkg !== 'object') return null;
+	const publish = pkg.build?.publish;
+	if (Array.isArray(publish)) {
+		for (const entry of publish) {
+			if (entry?.provider === 'github') {
+				if (typeof entry.owner === 'string' && typeof entry.repo === 'string') {
+					return `${entry.owner.trim()}/${entry.repo.trim()}`;
+				}
+				const fromUrl = parseGithubRepoString(entry.url);
+				if (fromUrl) return fromUrl;
+			}
+		}
+	}
+	const repository = pkg.repository;
+	if (typeof repository === 'string') {
+		const parsed = parseGithubRepoString(repository);
+		if (parsed) return parsed;
+	} else if (repository && typeof repository === 'object') {
+		const parsedRepo =
+			parseGithubRepoString(repository.url) ||
+			parseGithubRepoString(repository.directory) ||
+			parseGithubRepoString(repository.repo);
+		if (parsedRepo) return parsedRepo;
+	}
+	const homepageRepo = parseGithubRepoString(pkg.homepage);
+	if (homepageRepo) return homepageRepo;
+	return null;
+}
+
+async function loadPackageJson(appRoot) {
+	const pkgPath = path.join(appRoot, 'package.json');
+	return readJson(pkgPath);
+}
+
+async function resolveRepo({ appRoot, pkg }) {
+	const envRepo = getRepoFromEnv();
+	if (envRepo) return envRepo;
+	const repoFromPkg = repoFromPackage(pkg);
+	if (repoFromPkg) return repoFromPkg;
+	return null;
+}
+
 async function readJson(filePath) {
 	const raw = await fsp.readFile(filePath, 'utf8');
 	return JSON.parse(raw);
 }
 
 export async function getCurrentVersion(appRoot) {
-	const pkgPath = path.join(appRoot, 'package.json');
-	const pkg = await readJson(pkgPath);
+	const pkg = await loadPackageJson(appRoot);
 	return pkg.version || '0.0.0';
 }
 
@@ -102,13 +165,14 @@ async function copyRecursive(srcDir, dstDir) {
 }
 
 export async function checkForUpdates({ appRoot, onStatus }) {
-	const repo = getRepoFromEnv();
+	const pkg = await loadPackageJson(appRoot).catch(() => null);
+	const repo = await resolveRepo({ appRoot, pkg });
 	if (!repo) {
-		onStatus?.('GitHub repo not configured. Set GITHUB_REPO=owner/name');
+		onStatus?.('GitHub repo not configured. Set repository info in package.json or GITHUB_REPO=owner/name');
 		return { updated: false, reason: 'no_repo' };
 	}
 	const token = process.env.GITHUB_TOKEN || '';
-	const currentVersion = await getCurrentVersion(appRoot);
+	const currentVersion = pkg?.version || '0.0.0';
 	onStatus?.(`Current version ${currentVersion}`);
 	const { version: latestVersion, zipballUrl } = await getLatestRelease(repo, token);
 	if (!latestVersion) {
