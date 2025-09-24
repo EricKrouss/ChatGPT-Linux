@@ -1,0 +1,31 @@
+{
+  "name": "@eric/chatgpt-electron",
+  "version": "0.1.0",
+  "description": "Minimal Electron wrapper for ChatGPT on Bazzite Linux",
+  "private": true,
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "echo \"No packager configured. Use electron-builder if needed.\""
+  },
+  "author": "Eric",
+  "license": "MIT",
+  "homepage": "https://chat.openai.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://example.com/eric/chatgpt-electron.git"
+  },
+  "bugs": {
+    "url": "https://example.com/eric/chatgpt-electron/issues"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.12",
+    "semver": "^7.6.3"
+  }
+}
+
