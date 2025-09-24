@@ -196,7 +196,11 @@ win.webContents.on('did-create-window', (child, details) => {
 						const lines = [];
 						const onStatus = (m) => lines.push(m);
 						try {
-							const result = await checkForUpdates({ appRoot, onStatus });
+							const result = await checkForUpdates({ appRoot, onStatus, appIsPackaged: app.isPackaged });
+							if (result.openUrl) {
+								lines.push(`Opening ${result.openUrl}`);
+								shell.openExternal(result.openUrl);
+							}
 							if (result.updated) {
 								lines.push(`Updated to ${result.latestVersion}. Please restart.`);
 							} else {
